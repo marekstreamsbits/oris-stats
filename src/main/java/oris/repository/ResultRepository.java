@@ -13,8 +13,6 @@ import java.util.List;
 @Repository
 public interface ResultRepository extends CrudRepository<Result, Long> {
 
-    //TODO move big queries to a file?
-    //TODO Results of both SELECT COUNT() queries could be easily stored when extracting data - speeds up things a lot (could live on Event entity or EventStats)
     String STATISTICS_ATTENDEE_QUERY = "SELECT new oris.model.api.EventResult(" +
             "r.event.eventId, r.event.name, r.place, es.attendees, es.attendeesWithDisqualified, r.time, r.loss, r.category, r.event.date) " +
             "FROM Result r JOIN r.event.eventStatistics es WHERE r.attendee.registrationNumber = :registrationNumber AND r.category = es.category";
