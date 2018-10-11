@@ -1,0 +1,9 @@
+rootProject.name = 'oris-stats'
+include 'scheduler'
+include 'jobs-api'
+include 'jobs-oris'
+include 'oris-rest'
+findProject(':oris-rest')?.name = 'rest'
+include 'oris-model'
+include 'oris-stats-web'
+
