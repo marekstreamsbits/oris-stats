@@ -32,4 +32,5 @@ dependencies {
     compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
 
     compile group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
+    compile group: 'com.h2database', name: 'h2', version: '1.4.197'
 }
