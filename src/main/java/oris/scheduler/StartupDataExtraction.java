@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import oris.service.OrisApiExtractionService;
+import oris.service.OrisExtractionService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 @Service
 public class StartupDataExtraction {
 
-    private final OrisApiExtractionService orisExtractionService;
+    private final OrisExtractionService orisExtractionService;
     private final String startDate;
     private final int maxDaysAtOnce;
     private final boolean populateDbOnStartup;
@@ -26,7 +26,7 @@ public class StartupDataExtraction {
     private static final Logger LOG = LoggerFactory.getLogger(StartupDataExtraction.class);
 
     @Autowired
-    public StartupDataExtraction(OrisApiExtractionService orisExtractionService,
+    public StartupDataExtraction(OrisExtractionService orisExtractionService,
                                  @Value("${oris-stats.start.date}") String startDate,
                                  @Value("${oris-stats.max.days.extraction.at.once}") int maxDaysAtOnce,
                                  @Value("${oris-stats.download.data.from.oris.on.startup}") Boolean populateDbOnStartup) {
