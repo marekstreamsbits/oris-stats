@@ -4,11 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import oris.model.db.*;
 import oris.extractor.response.ResultDTO;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -34,32 +35,34 @@ public class OrisExtractionService {
         this.eventService = eventService;
     }
 
-    public void extractAndPersistEventData(LocalDate fromDay, LocalDate toDay) {
+    @Transactional
+    public Collection<Event> extractAndPersistEventData(LocalDate fromDay, LocalDate toDay) {
         final Collection<EventLite> events = orisApiExtractionService.getEvents(fromDay, toDay);
         ExecutorCompletionService completionService = new ExecutorCompletionService(executorService);
         events.forEach(event ->
                 completionService.submit(() -> {
                     final Event eventDetail = orisApiExtractionService.getEventDetail(event.getEventId());
                     final Collection<ResultDTO> eventResults = orisApiExtractionService.getEventResults(event.getEventId());
-                    OrisExtractionService.this.saveEventInfo(eventDetail, eventResults);
-                    return null;
+                    return saveEventInfo(eventDetail, eventResults);
                 })
         );
+        final List<Event> persistedEvents = new ArrayList<>();
         int eventCount = events.size();
         for (int i = 0; i < eventCount; i++) {
             try {
-                final Future completedFutureTask = completionService.take();
-                completedFutureTask.get();
+                final Future<Event> completedFutureTask = completionService.take();
+                persistedEvents.add(completedFutureTask.get());
             } catch (InterruptedException e) {
                 LOG.error("Unexpected exception while processing data from ORIS.", e);
             } catch (ExecutionException e) {
                 LOG.error("Error while processing data from ORIS.", e);
             }
         }
+        return persistedEvents;
     }
 
-    private void saveEventInfo(Event eventDetail, Collection<ResultDTO> eventResults) {
-        final Map<String, Attendee> attendeeMap = eventResults.parallelStream()
+    private Event saveEventInfo(Event eventDetail, Collection<ResultDTO> eventResults) {
+        final Map<String, Attendee> attendeeMap = eventResults.stream()
                 .map(ResultDTO::getRegNo)
                 .distinct()
                 .collect(Collectors.toMap(regNo -> regNo, attendeeService::findOrCreate));
@@ -75,7 +78,7 @@ public class OrisExtractionService {
         }).collect(Collectors.toList());
         eventDetail.setResults(results);
         eventDetail.setEventStatistics(resolveEventStatistics(eventDetail, results));
-        eventService.save(eventDetail);
+        return eventService.save(eventDetail);
     }
 
     private Collection<EventStatistics> resolveEventStatistics(Event eventDetail, List<Result> results) {
