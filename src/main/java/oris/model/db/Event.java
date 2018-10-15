@@ -1,10 +1,13 @@
 package oris.model.db;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+@Data
 @Table(name = "event")
 @Entity
 public class Event extends EventLite {
@@ -19,38 +22,6 @@ public class Event extends EventLite {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "event")
     private List<Result> results;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public List<Result> getResults() {
-        return results;
-    }
-
-    public Collection<EventStatistics> getEventStatistics() {
-        return eventStatistics;
-    }
-
-    public void setEventStatistics(Collection<EventStatistics> eventStatistics) {
-        this.eventStatistics = eventStatistics;
-    }
-
-    public void setResults(List<Result> results) {
-        this.results = results;
-    }
 
     public enum EventType {
         OB(1),
