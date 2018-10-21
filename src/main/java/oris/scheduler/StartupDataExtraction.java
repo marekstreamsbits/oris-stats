@@ -1,7 +1,6 @@
 package oris.scheduler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -13,6 +12,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
+@Log4j2
 @Service
 public class StartupDataExtraction {
 
@@ -22,8 +22,6 @@ public class StartupDataExtraction {
     private final boolean populateDbOnStartup;
 
     private final static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    private static final Logger LOG = LoggerFactory.getLogger(StartupDataExtraction.class);
 
     @Autowired
     public StartupDataExtraction(OrisExtractionService orisExtractionService,
@@ -43,11 +41,11 @@ public class StartupDataExtraction {
     public void populateDatabaseAfterStartup() {
 
         if (!populateDbOnStartup) {
-            LOG.info("Not running initial data load from ORIS. Change 'oris-stats.download.data.from.oris.on.startup' if you want to load data from ORIS.");
+            log.info("Not running initial data load from ORIS. Change 'oris-stats.download.data.from.oris.on.startup' if you want to load data from ORIS.");
             return;
         }
 
-        LOG.info("Starting loading data from ORIS. From date " + startDate);
+        log.info("Starting loading data from ORIS. From date " + startDate);
 
         //TODO check for already populated database - check latest added event - start from there in case
 
@@ -56,13 +54,13 @@ public class StartupDataExtraction {
         LocalDate toDay = toDay(yesterday, fromDay, maxDaysAtOnce);
 
         while (!fromDay.equals(toDay)) {
-            LOG.info("Extracting data from " + fromDay + " to " + toDay);
+            log.info("Extracting data from " + fromDay + " to " + toDay);
             orisExtractionService.extractAndPersistEventData(fromDay, toDay);
             fromDay = LocalDate.from(toDay).plus(1, ChronoUnit.DAYS); //API is inclusive in this filter
             toDay = toDay(yesterday, fromDay, maxDaysAtOnce);
         }
 
-        LOG.info("Finished loading data from ORIS.");
+        log.info("Finished loading data from ORIS.");
     }
 
     private LocalDate toDay(LocalDate yesterday, LocalDate fromDay, int maxDaysAtOnce) {
