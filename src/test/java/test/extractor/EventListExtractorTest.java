@@ -20,8 +20,9 @@ public class EventListExtractorTest {
     @Test
     public void listWithDates() {
         final EventListOrisExtractor eventListOrisExtractor = new EventListOrisExtractor();
-        eventListOrisExtractor.withFromDate(LocalDate.now());
-        eventListOrisExtractor.withToDate(LocalDate.now().plus(1, ChronoUnit.DAYS));
-        Assertions.assertEquals(eventListOrisExtractor.url(), "https://oris.orientacnisporty.cz/API/?format=json&method=getEventListVersions&sport=1&datefrom=2018-10-14&dateto=2018-10-15&all=1");
+        final LocalDate date = LocalDate.of(2018, 10, 20);
+        eventListOrisExtractor.withFromDate(date);
+        eventListOrisExtractor.withToDate(date.plus(1, ChronoUnit.DAYS));
+        Assertions.assertEquals("https://oris.orientacnisporty.cz/API/?format=json&method=getEventListVersions&sport=1&datefrom=2018-10-20&dateto=2018-10-21&all=1", eventListOrisExtractor.url());
     }
 }
