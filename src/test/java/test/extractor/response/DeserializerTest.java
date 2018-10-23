@@ -12,7 +12,7 @@ import java.io.IOException;
 //Testing custom deserializers
 public class DeserializerTest {
 
-    private static final ObjectMapper OBJECT_MAPPER = Application.orisObjectMapper(); // ObjectMapper used only in RestTemplate where objects are extracted, not app wide.
+    private static final ObjectMapper OBJECT_MAPPER = new Application().orisObjectMapper(); // ObjectMapper used only in RestTemplate where objects are extracted, not app wide.
 
     @Test
     public void emptyMapResultsDeserializerTest() throws IOException {
