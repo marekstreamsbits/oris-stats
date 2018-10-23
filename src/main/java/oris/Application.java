@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.MediaType;
@@ -21,7 +20,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @EnableScheduling
-@EnableCaching
 @EnableJpaRepositories
 @SpringBootApplication
 public class Application {
@@ -31,9 +29,9 @@ public class Application {
     }
 
     @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+    public RestTemplate restTemplate(RestTemplateBuilder builder, HttpMessageConverter orisJsonConverter) {
         return builder
-                .messageConverters(orisJsonConverter())
+                .messageConverters(orisJsonConverter)
                 .build();
     }
 
@@ -42,14 +40,16 @@ public class Application {
         return Executors.newFixedThreadPool(5);
     }
 
-    private static HttpMessageConverter orisJsonConverter() {
+    @Bean
+    public HttpMessageConverter orisJsonConverter(ObjectMapper objectMapper) {
         final MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
         messageConverter.setSupportedMediaTypes(List.of(MediaType.ALL));
-        messageConverter.setObjectMapper(orisObjectMapper());
+        messageConverter.setObjectMapper(objectMapper);
         return messageConverter;
     }
 
-    public static ObjectMapper orisObjectMapper() {
+    @Bean
+    public ObjectMapper orisObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

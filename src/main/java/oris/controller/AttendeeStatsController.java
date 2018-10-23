@@ -20,6 +20,7 @@ public class AttendeeStatsController extends BaseOrisStatsController {
     @RequestMapping(value = "/stats/attendee/{registrationNumber}", method = RequestMethod.GET, produces = "application/json")
     public AttendeeStatistics attendeeStatistics(@PathVariable(value = "registrationNumber") String registrationNumber) {
         LOG.debug("GET for /stats/attendee/{registrationNumber} with param {}", registrationNumber);
-        return statisticsService.getAttendeeStatistics(registrationNumber);
+        AttendeeStatistics attendeeStatistics = statisticsService.getAttendeeStatistics(registrationNumber);
+        return attendeeStatistics;
     }
 }
