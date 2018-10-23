@@ -25,9 +25,11 @@ repositories {
 sourceCompatibility = 1.10
 targetCompatibility = 1.10
 
+def springVersion='2.0.5.RELEASE'
+
 dependencies {
-    compile (group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.0.5.RELEASE')
-    compile (group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.0.5.RELEASE')
+    compile (group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: springVersion)
+    compile (group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: springVersion)
 
     compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
 
@@ -36,7 +38,7 @@ dependencies {
 
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.2'
 
-    testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.0.5.RELEASE'
+    testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springVersion
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.1'
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.3.1'
 }
