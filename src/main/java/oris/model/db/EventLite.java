@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Data
-@Table(name = "event")
+@Table(name = "events")
 @Entity
 public class EventLite extends BaseEntity {
 

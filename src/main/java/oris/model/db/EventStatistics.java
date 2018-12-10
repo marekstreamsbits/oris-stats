@@ -8,10 +8,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Data
-@Table(indexes = {
-        @Index(name = "event_category_index", columnList = "event_id, category")
-})
-@Entity
+@Table(name = "event_statistics",
+        indexes = {
+                @Index(name = "event_category_index", columnList = "event_id, category")
+        })
+@Entity()
 public class EventStatistics extends BaseEntity {
 
     private String category;
@@ -21,6 +22,6 @@ public class EventStatistics extends BaseEntity {
 
     private int attendees;
 
-    //All attendees
+    // All attendees
     private int attendeesWithDisqualified;
 }

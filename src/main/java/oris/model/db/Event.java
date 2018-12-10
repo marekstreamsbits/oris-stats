@@ -8,7 +8,6 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-@Table(name = "event")
 @Entity
 public class Event extends EventLite {
 
@@ -17,10 +16,10 @@ public class Event extends EventLite {
     @Temporal(TemporalType.DATE)
     private Date date;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "event")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "event", fetch = FetchType.LAZY)
     private Collection<EventStatistics> eventStatistics;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "event")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "event", fetch = FetchType.LAZY)
     private List<Result> results;
 
     public enum EventType {
