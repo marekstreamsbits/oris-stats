@@ -1,22 +1,29 @@
-package oris.scheduler;
+package oris.service.scheduled;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import oris.model.db.Event;
+import oris.utils.EventExtractionUtils;
 import oris.service.OrisExtractionService;
+import oris.service.events.EventsExtractionEvent;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 @Log4j2
 @Service
 public class StartupDataExtraction {
 
     private final OrisExtractionService orisExtractionService;
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     private final String startDate;
     private final int maxDaysAtOnce;
     private final boolean populateDbOnStartup;
@@ -25,10 +32,12 @@ public class StartupDataExtraction {
 
     @Autowired
     public StartupDataExtraction(OrisExtractionService orisExtractionService,
+                                 ApplicationEventPublisher applicationEventPublisher,
                                  @Value("${oris-stats.start.date}") String startDate,
                                  @Value("${oris-stats.max.days.extraction.at.once}") int maxDaysAtOnce,
                                  @Value("${oris-stats.download.data.from.oris.on.startup}") Boolean populateDbOnStartup) {
         this.orisExtractionService = orisExtractionService;
+        this.applicationEventPublisher = applicationEventPublisher;
         this.startDate = startDate;
         this.maxDaysAtOnce = maxDaysAtOnce;
         this.populateDbOnStartup = populateDbOnStartup;
@@ -49,18 +58,30 @@ public class StartupDataExtraction {
 
         //TODO check for already populated database - check latest added event - start from there in case
 
-        LocalDate yesterday = LocalDate.now().minus(1, ChronoUnit.DAYS);
+        final Set<Long> attendeeIds = new HashSet<>();
+        final UUID jobId = UUID.randomUUID();
+        final LocalDate yesterday = LocalDate.now().minus(1, ChronoUnit.DAYS);
         LocalDate fromDay = LocalDate.parse(startDate, DATE_FORMAT);
         LocalDate toDay = toDay(yesterday, fromDay, maxDaysAtOnce);
 
         while (!fromDay.equals(toDay)) {
-            log.info("Extracting data from " + fromDay + " to " + toDay);
-            orisExtractionService.extractAndPersistEventData(fromDay, toDay);
+            final Collection<Event> events = extractAndPersistEventData(jobId, fromDay, toDay);
+            attendeeIds.addAll(EventExtractionUtils.addAttendees(events));
             fromDay = LocalDate.from(toDay).plus(1, ChronoUnit.DAYS); //API is inclusive in this filter
             toDay = toDay(yesterday, fromDay, maxDaysAtOnce);
         }
 
         log.info("Finished loading data from ORIS.");
+        log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTION_INITIAL_FINISHED, jobId);
+        applicationEventPublisher.publishEvent(new EventsExtractionEvent(Collections.EMPTY_LIST, attendeeIds, jobId, EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTION_INITIAL_FINISHED));
+    }
+
+    private Collection<Event> extractAndPersistEventData(UUID jobId, LocalDate fromDay, LocalDate toDay) {
+        log.info("Extracting data from " + fromDay + " to " + toDay);
+        final Collection<Event> events = orisExtractionService.extractAndPersistEventData(fromDay, toDay);
+        log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_INITIAL, jobId);
+        applicationEventPublisher.publishEvent(new EventsExtractionEvent(events, Collections.EMPTY_LIST, jobId, EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_INITIAL));
+        return events;
     }
 
     private LocalDate toDay(LocalDate yesterday, LocalDate fromDay, int maxDaysAtOnce) {

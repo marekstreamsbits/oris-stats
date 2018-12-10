@@ -5,7 +5,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import oris.model.api.EventResult;
-import oris.model.db.Attendee;
 import oris.model.db.Result;
 
 import java.util.List;

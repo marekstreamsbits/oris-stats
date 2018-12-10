@@ -1,7 +1,6 @@
 package oris.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import oris.extractor.EventDetailOrisExtractor;
@@ -14,12 +13,11 @@ import oris.model.db.*;
 import java.time.LocalDate;
 import java.util.Collection;
 
+@Log4j2
 @Service
 public class OrisApiExtractionService { //Possibility to easily hide behind interface if different access possible.
 
     private final RestTemplate restTemplate;
-
-    private static final Logger LOG = LoggerFactory.getLogger(OrisApiExtractionService.class);
 
     public OrisApiExtractionService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -34,12 +32,12 @@ public class OrisApiExtractionService { //Possibility to easily hide behind inte
      * @return
      */
     public Collection<EventLite> getEvents(LocalDate dateFrom, LocalDate dateTo) {
-        EventListOrisExtractor eventListOrisExtractor = new EventListOrisExtractor();
+        final EventListOrisExtractor eventListOrisExtractor = new EventListOrisExtractor();
         eventListOrisExtractor.withFromDate(dateFrom);
         eventListOrisExtractor.withToDate(dateTo);
 
-        LOG.debug("Requesting getEvents from ORIS for dates from {} to {}", dateFrom, dateTo);
-        DataExtractor<Collection<EventLite>> dataExtractor = restTemplate.getForObject(eventListOrisExtractor.url(), eventListOrisExtractor.dataExtractor());
+        log.debug("Requesting getEvents from ORIS for dates from {} to {}", dateFrom, dateTo);
+        final DataExtractor<Collection<EventLite>> dataExtractor = restTemplate.getForObject(eventListOrisExtractor.url(), eventListOrisExtractor.dataExtractor());
 
         return dataExtractor.getData();
     }
@@ -48,7 +46,7 @@ public class OrisApiExtractionService { //Possibility to easily hide behind inte
         EventDetailOrisExtractor detailOrisExtractor = new EventDetailOrisExtractor();
         detailOrisExtractor.withEventId(eventId);
 
-        LOG.debug("Requesting getEventDetail from ORIS for event {}", eventId);
+        log.debug("Requesting getEventDetail from ORIS for event {}", eventId);
         DataExtractor<Event> eventDataExtractor = restTemplate.getForObject(detailOrisExtractor.url(), detailOrisExtractor.dataExtractor());
 
         return eventDataExtractor.getData();
@@ -58,7 +56,7 @@ public class OrisApiExtractionService { //Possibility to easily hide behind inte
         EventResultsOrisExtractor eventResultsExtractor = new EventResultsOrisExtractor();
         eventResultsExtractor.withEventId(eventId);
 
-        LOG.debug("Requesting getEventResults from ORIS for event {}", eventId);
+        log.debug("Requesting getEventResults from ORIS for event {}", eventId);
         DataExtractor<Collection<ResultDTO>> resultsExtractor = restTemplate.getForObject(eventResultsExtractor.url(), eventResultsExtractor.dataExtractor());
 
         return resultsExtractor.getData();

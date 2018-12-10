@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import oris.model.db.*;
 import oris.extractor.response.ResultDTO;
 
@@ -35,7 +34,6 @@ public class OrisExtractionService {
         this.eventService = eventService;
     }
 
-    @Transactional
     public Collection<Event> extractAndPersistEventData(LocalDate fromDay, LocalDate toDay) {
         final Collection<EventLite> events = orisApiExtractionService.getEvents(fromDay, toDay);
         ExecutorCompletionService completionService = new ExecutorCompletionService(executorService);
