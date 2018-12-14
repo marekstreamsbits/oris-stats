@@ -3,6 +3,7 @@ package oris.service.listener;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+import oris.model.db.Event;
 import oris.service.RivalryComputationService;
 import oris.service.events.EventsExtractionEvent;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Component
@@ -19,7 +21,7 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
 
     private final RivalryComputationService rivalryComputationService;
 
-    private static final int MAX_SEMAPHOR_PERMITS = 10; // Maximum 10 running jobs at one time. Ensures global rivalries are counted after all jobs are finished.
+    private static final int MAX_SEMAPHOR_PERMITS = Runtime.getRuntime().availableProcessors(); // Maximum running jobs at one time. Ensures global rivalries are counted after all jobs of ID finished.
 
     public RivalryComputationListener(RivalryComputationService rivalryComputationService) {
         this.rivalryComputationService = rivalryComputationService;
@@ -34,26 +36,25 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
 
         switch (event.getEventsExtractionJobType()) {
             case EVENTS_EXTRACTED_INITIAL:
-                handleEventRivalriesCompuation(event, semaphore);
+                handleEventRivalriesComputation(event, semaphore);
                 break;
 
             case EVENTS_EXTRACTION_INITIAL_FINISHED:
-                handleGlobalRivalriesComputation(event, semaphore);
+                handleGlobalRivalriesInitialComputation(event, semaphore);
                 break;
 
             case EVENTS_EXTRACTED_DAILY:
-                // TODO Marek implement
+                handleEventRivalriesComputation(event, semaphore);
                 break;
 
             case EVENTS_EXTRACTED_DAILY_FINISHED:
-                // TODO Marek implement
+                handleGlobalRivalriesDailyComputation(event, semaphore);
                 break;
         }
-
         log.info("Processed event: {} with jobID: {}", event.getEventsExtractionJobType(), event.getJobId());
     }
 
-    private void handleEventRivalriesCompuation(EventsExtractionEvent event, Semaphore semaphore) {
+    private void handleEventRivalriesComputation(EventsExtractionEvent event, Semaphore semaphore) {
         boolean acquired = false;
         try {
             semaphore.acquire();
@@ -69,11 +70,23 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
         }
     }
 
-    private void handleGlobalRivalriesComputation(EventsExtractionEvent event, Semaphore semaphore) {
+    private void handleGlobalRivalriesInitialComputation(EventsExtractionEvent event, Semaphore semaphore) {
         try {
             semaphore.acquire(MAX_SEMAPHOR_PERMITS);
             log.info("Started to process event: {} with jobID: {}", event.getEventsExtractionJobType(), event.getJobId());
-            rivalryComputationService.computeGlobalRivalries(event.getAttendeeIds());
+            rivalryComputationService.computeGlobalRivalriesInitial(event.getAttendeeIds());
+        } catch (InterruptedException e) {
+            log.error("Could not acquire a job slot from the semaphor.", e);
+        } finally {
+            jobSemaphors.remove(event.getJobId());
+        }
+    }
+
+    private void handleGlobalRivalriesDailyComputation(EventsExtractionEvent event, Semaphore semaphore) {
+        try {
+            semaphore.acquire(MAX_SEMAPHOR_PERMITS);
+            log.info("Started to process event: {} with jobID: {}", event.getEventsExtractionJobType(), event.getJobId());
+            rivalryComputationService.computeGlobalRivalriesDaily(event.getAttendeeIds(), event.getEvents().stream().map(Event::getId).collect(Collectors.toList()));
         } catch (InterruptedException e) {
             log.error("Could not acquire a job slot from the semaphor.", e);
         } finally {

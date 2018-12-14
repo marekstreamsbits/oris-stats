@@ -4,15 +4,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import oris.model.db.*;
 import oris.extractor.response.ResultDTO;
+import oris.model.db.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +39,7 @@ public class OrisExtractionService {
 
     public Collection<Event> extractAndPersistEventData(LocalDate fromDay, LocalDate toDay) {
         final Collection<EventLite> events = orisApiExtractionService.getEvents(fromDay, toDay);
-        ExecutorCompletionService completionService = new ExecutorCompletionService(executorService);
+        final ExecutorCompletionService completionService = new ExecutorCompletionService(executorService);
         events.forEach(event ->
                 completionService.submit(() -> {
                     final Event eventDetail = orisApiExtractionService.getEventDetail(event.getEventId());

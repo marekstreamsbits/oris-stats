@@ -5,7 +5,12 @@ import lombok.Data;
 import javax.persistence.*;
 
 @Data
-@Table(name = "event_rivalries", indexes = {@Index(name = "IDX_EVENT_RIVALRY_CATEGORY", columnList = "category")})
+@Table(name = "event_rivalries", indexes = {
+        @Index(name = "IDX_EVENT_RIVALRY_CATEGORY", columnList = "category"),
+        @Index(name = "IDX_EVENT_RIVALRY_ATTENDEE", columnList = "attendee_id"),
+        @Index(name = "IDX_EVENT_RIVALRY_ATTENDEE_RIVAL", columnList = "attendee_id, rival_id"),
+        @Index(name = "IDX_EVENT_RIVALRY_EVENT", columnList = "event_id")
+})
 @Entity
 public class EventRivalry extends BaseEntity {
 

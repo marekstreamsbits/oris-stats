@@ -9,7 +9,10 @@ import javax.persistence.*;
 @Table(name = "global_rivalries", indexes = {@Index(name = "IDX_GLOBAL_RIVALRIES_CATEGORY", columnList = "category"),
         @Index(name = "IDX_GLOBAL_RIVALRIES_WIN_DIFFERENCE", columnList = "winDifference"),
         @Index(name = "IDX_GLOBAL_RIVALRIES_WIN_DIFFERENCE_ABS", columnList = "winDifferenceAbs"),
-        @Index(name = "IDX_GLOBAL_RIVALRIES_EVENTS_COUNT", columnList = "eventsCount")})
+        @Index(name = "IDX_GLOBAL_RIVALRIES_EVENTS_COUNT", columnList = "eventsCount"),
+        @Index(name = "IDX_GLOBAL_RIVALRIES_ATTENDEE", columnList = "attendee_id"),
+        @Index(name = "IDX_GLOBAL_RIVALRIES_ATTENDEE_RIVAL", columnList = "attendee_id, rival_id")
+})
 public class GlobalRivalry extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
