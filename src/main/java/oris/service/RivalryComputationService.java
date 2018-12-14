@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -49,6 +50,9 @@ public class RivalryComputationService {
     }
 
     public void computeGlobalRivalriesInitial(final Collection<Long> attendeeIds) {
+        final AtomicInteger attendeesProcessed = new AtomicInteger();
+        final AtomicInteger multiplier = new AtomicInteger(1);
+        final int multiplicationConstant = 250;
         try {
             dropIndexes();
             log.info("Creating completion service to compute global rivalries. Number of executor threads: {}", GLOBAL_RIVALRY_COMPUTATION_THREADS);
@@ -60,7 +64,12 @@ public class RivalryComputationService {
                 while (attendeeIterator.hasNext() && runningThreads < GLOBAL_RIVALRY_COMPUTATION_THREADS) {
                     final List<Long> attendeeIdsToProcess = takeIds(attendeeIterator, MAX_ATTENDEES_DATA_PER_TRANSACTION);
                     completionService.submit(() -> {
-                        computeGlobalRivalriesForAttendee(attendeeIdsToProcess);
+                        final int processedAttendees = computeGlobalRivalriesForAttendee(attendeeIdsToProcess);
+                        final int totalProcessedAttendees = attendeesProcessed.addAndGet(processedAttendees);
+                        if (totalProcessedAttendees >= multiplicationConstant * multiplier.get() || totalProcessedAttendees == attendeeIds.size()) {
+                            multiplier.incrementAndGet();
+                            log.info("Processed {} out of {} attendees during Global Rivalries computation.", attendeesProcessed.get(), attendeeIds.size());
+                        }
                         return true;
                     });
                     runningThreads++;
@@ -138,10 +147,11 @@ public class RivalryComputationService {
         log.info("Dropped indexes on global_rivalries.");
     }
 
-    private void computeGlobalRivalriesForAttendee(final List<Long> attendeeIds) {
+    private int computeGlobalRivalriesForAttendee(final List<Long> attendeeIds) {
         final List<GlobalRivalry> globalRivalries = new ArrayList<>(attendeeIds.size() * 100);
         attendeeIds.forEach(attendeeId -> globalRivalries.addAll(computeGlobalRivalriesForAttendeeId(attendeeId)));
         globalRivalryRepository.saveAll(globalRivalries);
+        return attendeeIds.size();
     }
 
     private List<GlobalRivalry> computeGlobalRivalriesForAttendeeId(final Long attendeeId) {
