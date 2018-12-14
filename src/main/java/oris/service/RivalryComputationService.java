@@ -118,16 +118,12 @@ public class RivalryComputationService {
                 final Long rivalId = eventRivalry.getRival().getId();
                 if (!rivalIdToGlobalRivalry.containsKey(rivalId)) {
                     rivalIdToGlobalRivalry.put(rivalId, createGlobalRivalry(List.of(eventRivalry)));
+                } else {
+                    updateWinDifference(rivalIdToGlobalRivalry.get(rivalId), eventRivalry);
                 }
-                updateGlobalRivalry(eventRivalry, rivalIdToGlobalRivalry.get(rivalId));
             });
             globalRivalryRepository.saveAll(rivalIdToGlobalRivalry.values());
         });
-    }
-
-    private void updateGlobalRivalry(final EventRivalry eventRivalry, final GlobalRivalry globalRivalry) {
-
-
     }
 
     private void createIndexes() {
@@ -191,16 +187,20 @@ public class RivalryComputationService {
         globalRivalry.setCategory(rivalries.get(0).getCategory());
         globalRivalry.setEventsCount(rivalries.size());
         rivalries.forEach(rivalry -> {
-            if (rivalry.getRivalWon() != null) {
-                if (rivalry.getRivalWon()) {
-                    globalRivalry.setWinDifference(globalRivalry.getWinDifference() - 1);
-                } else {
-                    globalRivalry.setWinDifference(globalRivalry.getWinDifference() + 1);
-                }
-            }
+            updateWinDifference(globalRivalry, rivalry);
         });
-        globalRivalry.setWinDifferenceAbs(Math.abs(globalRivalry.getWinDifference()));
         return globalRivalry;
+    }
+
+    private void updateWinDifference(final GlobalRivalry globalRivalry, final EventRivalry rivalry) {
+        if (rivalry.getRivalWon() != null) {
+            if (rivalry.getRivalWon()) {
+                globalRivalry.setWinDifference(globalRivalry.getWinDifference() - 1);
+            } else {
+                globalRivalry.setWinDifference(globalRivalry.getWinDifference() + 1);
+            }
+        }
+        globalRivalry.setWinDifferenceAbs(Math.abs(globalRivalry.getWinDifference()));
     }
 
     private void createAndSaveRivalries(final List<Result> results) {
