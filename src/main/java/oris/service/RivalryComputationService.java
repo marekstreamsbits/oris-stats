@@ -8,6 +8,7 @@ import oris.model.db.GlobalRivalry;
 import oris.model.db.Result;
 import oris.repository.EventRivalryRepository;
 import oris.repository.GlobalRivalryRepository;
+import oris.utils.ThreadingUtils;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -23,7 +24,7 @@ public class RivalryComputationService {
     private final EventRivalryRepository eventRivalryRepository;
     private final GlobalRivalryRepository globalRivalryRepository;
 
-    private static final int GLOBAL_RIVALRY_COMPUTATION_THREADS = Runtime.getRuntime().availableProcessors();
+    private static final int GLOBAL_RIVALRY_COMPUTATION_THREADS = ThreadingUtils.defaultThreadCount();
 
     // DB is a bottle neck here - we do not want to call persist() on little amounts of data, make it hundreds, thousands of records per call.
     private static final int MAX_ATTENDEES_DATA_PER_TRANSACTION = 20;

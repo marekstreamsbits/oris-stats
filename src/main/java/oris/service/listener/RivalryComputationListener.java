@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import oris.model.db.Event;
 import oris.service.RivalryComputationService;
 import oris.service.events.EventsExtractionEvent;
+import oris.utils.ThreadingUtils;
 
 import java.util.Map;
 import java.util.UUID;
@@ -21,7 +22,7 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
 
     private final RivalryComputationService rivalryComputationService;
 
-    private static final int MAX_SEMAPHOR_PERMITS = Runtime.getRuntime().availableProcessors(); // Maximum running jobs at one time. Ensures global rivalries are counted after all jobs of ID finished.
+    private static final int MAX_SEMAPHOR_PERMITS = ThreadingUtils.defaultThreadCount(); // Maximum running jobs at one time. Ensures global rivalries are counted after all jobs of ID finished.
 
     public RivalryComputationListener(RivalryComputationService rivalryComputationService) {
         this.rivalryComputationService = rivalryComputationService;
