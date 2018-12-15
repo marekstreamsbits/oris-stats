@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import oris.model.db.Event;
+import oris.repository.EventRivalryRepository;
 import oris.service.RivalryComputationService;
 import oris.service.events.EventsExtractionEvent;
 import oris.utils.ThreadingUtils;
@@ -22,10 +23,13 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
 
     private final RivalryComputationService rivalryComputationService;
 
+    private final EventRivalryRepository eventRivalryRepository;
+
     private static final int MAX_SEMAPHOR_PERMITS = ThreadingUtils.defaultThreadCount(); // Maximum running jobs at one time. Ensures global rivalries are counted after all jobs of ID finished.
 
-    public RivalryComputationListener(RivalryComputationService rivalryComputationService) {
+    public RivalryComputationListener(RivalryComputationService rivalryComputationService, EventRivalryRepository eventRivalryRepository) {
         this.rivalryComputationService = rivalryComputationService;
+        this.eventRivalryRepository = eventRivalryRepository;
     }
 
     @Override
@@ -74,6 +78,8 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
     private void handleGlobalRivalriesInitialComputation(EventsExtractionEvent event, Semaphore semaphore) {
         try {
             semaphore.acquire(MAX_SEMAPHOR_PERMITS);
+            log.info("Recreating indexes on event_rivalries table.");
+            eventRivalryRepository.createIndexes();
             log.info("Started to process event: {} with jobID: {} and name {}", event.getEventsExtractionJobType(), event.getJobId(), event.getName());
             rivalryComputationService.computeGlobalRivalriesInitial(event.getAttendeeIds());
         } catch (InterruptedException e) {

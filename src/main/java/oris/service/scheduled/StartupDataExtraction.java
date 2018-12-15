@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import oris.model.db.Event;
+import oris.repository.EventRivalryRepository;
 import oris.service.OrisExtractionService;
 import oris.service.events.EventsExtractionEvent;
 import oris.utils.EventExtractionUtils;
@@ -24,6 +25,8 @@ public class StartupDataExtraction {
     private final OrisExtractionService orisExtractionService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    private final EventRivalryRepository eventRivalryRepository;
+
     private final String startDate;
     private final int maxDaysAtOnce;
     private final boolean populateDbOnStartup;
@@ -33,11 +36,13 @@ public class StartupDataExtraction {
     @Autowired
     public StartupDataExtraction(OrisExtractionService orisExtractionService,
                                  ApplicationEventPublisher applicationEventPublisher,
+                                 EventRivalryRepository eventRivalryRepository,
                                  @Value("${oris-stats.start.date}") String startDate,
                                  @Value("${oris-stats.max.days.extraction.at.once}") int maxDaysAtOnce,
                                  @Value("${oris-stats.download.data.from.oris.on.startup}") Boolean populateDbOnStartup) {
         this.orisExtractionService = orisExtractionService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.eventRivalryRepository = eventRivalryRepository;
         this.startDate = startDate;
         this.maxDaysAtOnce = maxDaysAtOnce;
         this.populateDbOnStartup = populateDbOnStartup;
@@ -64,6 +69,9 @@ public class StartupDataExtraction {
         LocalDate fromDay = LocalDate.parse(startDate, DATE_FORMAT);
         LocalDate toDay = toDay(yesterday, fromDay, maxDaysAtOnce);
 
+        log.info("Dropping indexes on event_rivalries table.");
+        eventRivalryRepository.dropIndexes();
+
         while (!fromDay.equals(toDay)) {
             final Collection<Event> events = extractAndPersistEventData(jobId, fromDay, toDay);
             attendeeIds.addAll(EventExtractionUtils.addAttendees(events));
@@ -72,6 +80,7 @@ public class StartupDataExtraction {
         }
 
         log.info("Finished loading data from ORIS.");
+
         log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTION_INITIAL_FINISHED, jobId);
         applicationEventPublisher.publishEvent(
                 new EventsExtractionEvent(Collections.EMPTY_LIST, attendeeIds, jobId, String.format("EVENTS_EXTRACTION_INITIAL_FINISHED %s", LocalDate.now().toString()),

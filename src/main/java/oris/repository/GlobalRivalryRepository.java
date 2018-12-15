@@ -16,8 +16,8 @@ import java.util.List;
 public interface GlobalRivalryRepository extends CrudRepository<GlobalRivalry, Long> {
 
     String DROP_INDEXES = "DROP INDEX idx_global_rivalries_category; " +
-            "DROP INDEX idx_global_rivalries_events_count; " +
-            "DROP INDEX idx_global_rivalries_win_difference; " +
+            "DROP INDEX idx_global_rivalries_events_count;" +
+            "DROP INDEX idx_global_rivalries_win_difference;" +
             "DROP INDEX idx_global_rivalries_win_difference_abs;" +
             "DROP INDEX idx_global_rivalries_attendee;" +
             "DROP INDEX idx_global_rivalries_attendee_rival;";
