@@ -1,19 +1,15 @@
 package oris.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import oris.model.api.AttendeeStatistics;
 import oris.repository.ResultRepository;
 
+@AllArgsConstructor
 @Service
 public class StatisticsService {
 
-    private ResultRepository resultRepository;
-
-    @Autowired
-    public StatisticsService(ResultRepository resultRepository) {
-        this.resultRepository = resultRepository;
-    }
+    private final ResultRepository resultRepository;
 
     public AttendeeStatistics getAttendeeStatistics(String registrationNumber) {
         final AttendeeStatistics attendeeStatistics = new AttendeeStatistics();

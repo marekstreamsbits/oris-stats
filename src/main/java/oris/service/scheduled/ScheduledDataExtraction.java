@@ -5,9 +5,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import oris.model.db.Event;
-import oris.utils.EventExtractionUtils;
 import oris.service.OrisExtractionService;
 import oris.service.events.EventsExtractionEvent;
+import oris.utils.EventExtractionUtils;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -41,11 +41,13 @@ public class ScheduledDataExtraction {
         log.info("Finished job extract yesterday's data, added {} new events from day {}.", events.size(), yesterday);
 
         applicationEventPublisher.publishEvent(new EventsExtractionEvent(events, Collections.EMPTY_LIST, jobId,
-                EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_DAILY));
+                String.format("EVENTS_EXTRACTED_INITIAL from %s to %s", yesterday.toString(), yesterday.toString()), EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_DAILY));
         log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_DAILY, jobId);
 
-        applicationEventPublisher.publishEvent(new EventsExtractionEvent(Collections.EMPTY_LIST, EventExtractionUtils.addAttendees(events), jobId,
-                EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_DAILY_FINISHED));
+        final Collection<Long> attendeeIds = EventExtractionUtils.addAttendees(events);
+
+        applicationEventPublisher.publishEvent(new EventsExtractionEvent(Collections.EMPTY_LIST, attendeeIds, jobId,
+                String.format("DAILY_GLOBAL_RIVALRIES from %s of %d events and %d attendees", yesterday.toString(), events.size(), attendeeIds.size()), EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_DAILY_FINISHED));
         log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_DAILY_FINISHED, jobId);
     }
 }

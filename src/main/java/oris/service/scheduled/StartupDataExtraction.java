@@ -8,9 +8,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import oris.model.db.Event;
-import oris.utils.EventExtractionUtils;
 import oris.service.OrisExtractionService;
 import oris.service.events.EventsExtractionEvent;
+import oris.utils.EventExtractionUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -73,14 +73,18 @@ public class StartupDataExtraction {
 
         log.info("Finished loading data from ORIS.");
         log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTION_INITIAL_FINISHED, jobId);
-        applicationEventPublisher.publishEvent(new EventsExtractionEvent(Collections.EMPTY_LIST, attendeeIds, jobId, EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTION_INITIAL_FINISHED));
+        applicationEventPublisher.publishEvent(
+                new EventsExtractionEvent(Collections.EMPTY_LIST, attendeeIds, jobId, String.format("EVENTS_EXTRACTION_INITIAL_FINISHED %s", LocalDate.now().toString()),
+                        EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTION_INITIAL_FINISHED));
     }
 
     private Collection<Event> extractAndPersistEventData(UUID jobId, LocalDate fromDay, LocalDate toDay) {
         log.info("Extracting data from " + fromDay + " to " + toDay);
         final Collection<Event> events = orisExtractionService.extractAndPersistEventData(fromDay, toDay);
         log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_INITIAL, jobId);
-        applicationEventPublisher.publishEvent(new EventsExtractionEvent(events, Collections.EMPTY_LIST, jobId, EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_INITIAL));
+        applicationEventPublisher.publishEvent(
+                new EventsExtractionEvent(events, Collections.EMPTY_LIST, jobId, String.format("EVENTS_EXTRACTED_INITIAL from %s to %s", fromDay.toString(), toDay.toString()),
+                        EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_INITIAL));
         return events;
     }
 

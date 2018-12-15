@@ -196,7 +196,7 @@ public class RivalryComputationService {
         globalRivalry.setAttendee(rivalries.get(0).getAttendee());
         globalRivalry.setRival(rivalries.get(0).getRival());
         globalRivalry.setCategory(rivalries.get(0).getCategory());
-        globalRivalry.setEventsCount(rivalries.size());
+        globalRivalry.setEventCount(rivalries.size());
         rivalries.forEach(rivalry -> {
             updateWinDifference(globalRivalry, rivalry);
         });

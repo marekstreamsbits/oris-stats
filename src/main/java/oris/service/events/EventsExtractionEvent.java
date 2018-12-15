@@ -13,13 +13,15 @@ import java.util.UUID;
 public class EventsExtractionEvent extends ApplicationEvent {
 
     private final UUID jobId;
+    private final String name;
     private final EventsExtractionJobType eventsExtractionJobType;
     private final Collection<Event> events;
     private final Collection<Long> attendeeIds;
 
-    public EventsExtractionEvent(final Collection<Event> events, final Collection<Long> attendeeIds, final UUID jobId, EventsExtractionJobType eventsExtractionJobType) {
+    public EventsExtractionEvent(final Collection<Event> events, final Collection<Long> attendeeIds, final UUID jobId, String name, EventsExtractionJobType eventsExtractionJobType) {
         super(events);
         this.jobId = jobId;
+        this.name = name;
         this.eventsExtractionJobType = eventsExtractionJobType;
         this.events = events;
         this.attendeeIds = attendeeIds;

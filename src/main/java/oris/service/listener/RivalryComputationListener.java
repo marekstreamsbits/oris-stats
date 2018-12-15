@@ -31,7 +31,7 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
     @Override
     public void onApplicationEvent(EventsExtractionEvent event) {
 
-        log.info("Requested to process event: {} with jobID: {}", event.getEventsExtractionJobType(), event.getJobId());
+        log.info("Requested to process event: {} with jobID: {} and name {}", event.getEventsExtractionJobType(), event.getJobId(), event.getName());
 
         final Semaphore semaphore = jobSemaphors.computeIfAbsent(event.getJobId(), uuid -> new Semaphore(MAX_SEMAPHOR_PERMITS));
 
@@ -52,7 +52,7 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
                 handleGlobalRivalriesDailyComputation(event, semaphore);
                 break;
         }
-        log.info("Processed event: {} with jobID: {}", event.getEventsExtractionJobType(), event.getJobId());
+        log.info("Processed event: {} with jobID: {} and name {}", event.getEventsExtractionJobType(), event.getJobId(), event.getName());
     }
 
     private void handleEventRivalriesComputation(EventsExtractionEvent event, Semaphore semaphore) {
@@ -60,7 +60,7 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
         try {
             semaphore.acquire();
             acquired = true;
-            log.info("Started to process event: {} with jobID: {}", event.getEventsExtractionJobType(), event.getJobId());
+            log.info("Started to process event: {} with jobID: {} and name {}", event.getEventsExtractionJobType(), event.getJobId(), event.getName());
             rivalryComputationService.computeAndPersistRivalries(event.getEvents());
         } catch (InterruptedException e) {
             log.error("Could not acquire a job slot from the semaphor.", e);
@@ -74,7 +74,7 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
     private void handleGlobalRivalriesInitialComputation(EventsExtractionEvent event, Semaphore semaphore) {
         try {
             semaphore.acquire(MAX_SEMAPHOR_PERMITS);
-            log.info("Started to process event: {} with jobID: {}", event.getEventsExtractionJobType(), event.getJobId());
+            log.info("Started to process event: {} with jobID: {} and name {}", event.getEventsExtractionJobType(), event.getJobId(), event.getName());
             rivalryComputationService.computeGlobalRivalriesInitial(event.getAttendeeIds());
         } catch (InterruptedException e) {
             log.error("Could not acquire a job slot from the semaphor.", e);
@@ -86,7 +86,7 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
     private void handleGlobalRivalriesDailyComputation(EventsExtractionEvent event, Semaphore semaphore) {
         try {
             semaphore.acquire(MAX_SEMAPHOR_PERMITS);
-            log.info("Started to process event: {} with jobID: {}", event.getEventsExtractionJobType(), event.getJobId());
+            log.info("Started to process event: {} with jobID: {} and name {}", event.getEventsExtractionJobType(), event.getJobId(), event.getName());
             rivalryComputationService.computeGlobalRivalriesDaily(event.getAttendeeIds(), event.getEvents().stream().map(Event::getId).collect(Collectors.toList()));
         } catch (InterruptedException e) {
             log.error("Could not acquire a job slot from the semaphor.", e);
