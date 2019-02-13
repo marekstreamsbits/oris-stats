@@ -37,7 +37,14 @@ public class OrisExtractionService {
         this.eventService = eventService;
     }
 
-    public Collection<Event> extractAndPersistEventData(LocalDate fromDay, LocalDate toDay) {
+    /**
+     * Trying to extract and persist all data about an event, including the results.
+     *
+     * @param fromDay
+     * @param toDay
+     * @return
+     */
+    public Collection<Event> extractAndPersistEventDataWithResults(final LocalDate fromDay, final LocalDate toDay) {
         final Collection<EventLite> events = orisApiExtractionService.getEvents(fromDay, toDay);
         final ExecutorCompletionService completionService = new ExecutorCompletionService(executorService);
         events.forEach(event ->
@@ -47,6 +54,39 @@ public class OrisExtractionService {
                     return saveEventInfo(eventDetail, eventResults);
                 })
         );
+        return finishEventTasks(events, completionService);
+    }
+
+    public Collection<Event> extractAndPersistTodaysEventData() {
+        final LocalDate toDay = LocalDate.now();
+        final Collection<EventLite> events = orisApiExtractionService.getEvents(toDay, toDay);
+
+        final ExecutorCompletionService completionService = new ExecutorCompletionService(executorService);
+        events.forEach(event ->
+                completionService.submit(() -> {
+                    final Event eventDetail = orisApiExtractionService.getEventDetail(event.getEventId());
+                    return saveEventInfo(eventDetail);
+                })
+        );
+        return finishEventTasks(events, completionService);
+    }
+
+    public Collection<Event> extractAndPersistEventResultsData(final Collection<Event> todaysEventsWithoutResults) {
+        final ExecutorCompletionService completionService = new ExecutorCompletionService(executorService);
+        todaysEventsWithoutResults.forEach(event ->
+                completionService.submit(() -> {
+                    final Event eventDetail = orisApiExtractionService.getEventDetail(event.getEventId());
+                    final Collection<ResultDTO> eventResults = orisApiExtractionService.getEventResults(event.getEventId());
+                    if (eventResults.isEmpty()) {
+                        return eventDetail;
+                    }
+                    return saveEventInfo(eventDetail, eventResults);
+                })
+        );
+        return finishEventTasks(new ArrayList<>(todaysEventsWithoutResults), completionService);
+    }
+
+    protected Collection<Event> finishEventTasks(Collection<EventLite> events, ExecutorCompletionService completionService) {
         final List<Event> persistedEvents = new ArrayList<>();
         int eventCount = events.size();
         for (int i = 0; i < eventCount; i++) {
@@ -60,6 +100,10 @@ public class OrisExtractionService {
             }
         }
         return persistedEvents;
+    }
+
+    private Event saveEventInfo(final Event eventDetail) {
+        return eventService.save(eventDetail);
     }
 
     private Event saveEventInfo(Event eventDetail, Collection<ResultDTO> eventResults) {
@@ -82,7 +126,7 @@ public class OrisExtractionService {
         return eventService.save(eventDetail);
     }
 
-    private Collection<EventStatistics> resolveEventStatistics(Event eventDetail, List<Result> results) {
+    private Collection<EventStatistics> resolveEventStatistics(final Event eventDetail, final List<Result> results) {
         final Map<String, EventStatistics> categoryStatisticsMap = results
                 .stream()
                 .map(Result::getCategory)

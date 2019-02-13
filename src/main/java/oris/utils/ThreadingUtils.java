@@ -10,7 +10,7 @@ public class ThreadingUtils {
         if (availableProcessors <= 1) {
             return 4;
         } else {
-            return availableProcessors;
+            return (int) Math.round(availableProcessors * 1.5);
         }
     }
 }

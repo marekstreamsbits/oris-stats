@@ -31,6 +31,8 @@ public class StartupDataExtraction {
     private final int maxDaysAtOnce;
     private final boolean populateDbOnStartup;
 
+    private static volatile boolean startupExtractionInProgress = false;
+
     private final static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Autowired
@@ -59,49 +61,69 @@ public class StartupDataExtraction {
             return;
         }
 
+        startupExtractionInProgress = true;
+
         log.info("Starting loading data from ORIS. From date " + startDate);
 
         //TODO check for already populated database - check latest added event - start from there in case
 
         final Set<Long> attendeeIds = new HashSet<>();
         final UUID jobId = UUID.randomUUID();
-        final LocalDate yesterday = LocalDate.now().minus(1, ChronoUnit.DAYS);
+        final LocalDate today = LocalDate.now();
         LocalDate fromDay = LocalDate.parse(startDate, DATE_FORMAT);
-        LocalDate toDay = toDay(yesterday, fromDay, maxDaysAtOnce);
+        LocalDate toDay = toDay(today, fromDay, maxDaysAtOnce);
 
         log.info("Dropping indexes on event_rivalries table.");
         eventRivalryRepository.dropIndexes();
 
         while (!fromDay.equals(toDay)) {
             final Collection<Event> events = extractAndPersistEventData(jobId, fromDay, toDay);
-            attendeeIds.addAll(EventExtractionUtils.addAttendees(events));
+            attendeeIds.addAll(EventExtractionUtils.extractAttendeeIds(events));
             fromDay = LocalDate.from(toDay).plus(1, ChronoUnit.DAYS); //API is inclusive in this filter
-            toDay = toDay(yesterday, fromDay, maxDaysAtOnce);
+            toDay = toDay(today, fromDay, maxDaysAtOnce);
         }
 
         log.info("Finished loading data from ORIS.");
 
-        log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTION_INITIAL_FINISHED, jobId);
+        log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENT_RESULTS_EXTRACTION_INITIAL_FINISHED, jobId);
         applicationEventPublisher.publishEvent(
-                new EventsExtractionEvent(Collections.EMPTY_LIST, attendeeIds, jobId, String.format("EVENTS_EXTRACTION_INITIAL_FINISHED %s", LocalDate.now().toString()),
-                        EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTION_INITIAL_FINISHED));
+                new EventsExtractionEvent(Collections.EMPTY_LIST, attendeeIds, jobId, String.format("EVENT_RESULTS_EXTRACTION_INITIAL_FINISHED %s", LocalDate.now().toString()),
+                        EventsExtractionEvent.EventsExtractionJobType.EVENT_RESULTS_EXTRACTION_INITIAL_FINISHED));
+    }
+
+    // TODO Detect this ongoing event differently and not through this flag.
+    public static boolean startupExtractionAndComputationInProgress() {
+        return startupExtractionInProgress;
+    }
+
+    // TODO Detect this ongoing event differently and not through this flag.
+    public static void finishedStartupExtrationAndComputation() {
+        startupExtractionInProgress = false;
     }
 
     private Collection<Event> extractAndPersistEventData(UUID jobId, LocalDate fromDay, LocalDate toDay) {
         log.info("Extracting data from " + fromDay + " to " + toDay);
-        final Collection<Event> events = orisExtractionService.extractAndPersistEventData(fromDay, toDay);
-        log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_INITIAL, jobId);
+        final Collection<Event> events = orisExtractionService.extractAndPersistEventDataWithResults(fromDay, toDay);
+        log.info("Publishing event {} with jobID {}", EventsExtractionEvent.EventsExtractionJobType.EVENT_RESULTS_EXTRACTED_INITIAL, jobId);
         applicationEventPublisher.publishEvent(
-                new EventsExtractionEvent(events, Collections.EMPTY_LIST, jobId, String.format("EVENTS_EXTRACTED_INITIAL from %s to %s", fromDay.toString(), toDay.toString()),
-                        EventsExtractionEvent.EventsExtractionJobType.EVENTS_EXTRACTED_INITIAL));
+                new EventsExtractionEvent(events, Collections.EMPTY_LIST, jobId, String.format("EVENT_RESULTS_EXTRACTED_INITIAL from %s to %s", fromDay.toString(), toDay.toString()),
+                        EventsExtractionEvent.EventsExtractionJobType.EVENT_RESULTS_EXTRACTED_INITIAL));
         return events;
     }
 
-    private LocalDate toDay(LocalDate yesterday, LocalDate fromDay, int maxDaysAtOnce) {
+    /**
+     * Calculates the day to which (included) we are extracting statistics.
+     *
+     * @param today
+     * @param fromDay
+     * @param maxDaysAtOnce
+     * @return
+     */
+    private LocalDate toDay(final LocalDate today, final LocalDate fromDay, final int maxDaysAtOnce) {
         int daysAdded = 0;
         LocalDate toDate = LocalDate.from(fromDay);
 
-        while (daysAdded != maxDaysAtOnce && toDate.isBefore(yesterday)) {
+        while (daysAdded != maxDaysAtOnce && toDate.isBefore(today)) {
             toDate = toDate.plus(1, ChronoUnit.DAYS);
             daysAdded++;
         }

@@ -7,6 +7,7 @@ import oris.model.db.Event;
 import oris.repository.EventRivalryRepository;
 import oris.service.RivalryComputationService;
 import oris.service.events.EventsExtractionEvent;
+import oris.service.scheduled.StartupDataExtraction;
 import oris.utils.ThreadingUtils;
 
 import java.util.Map;
@@ -40,19 +41,20 @@ public class RivalryComputationListener implements ApplicationListener<EventsExt
         final Semaphore semaphore = jobSemaphors.computeIfAbsent(event.getJobId(), uuid -> new Semaphore(MAX_SEMAPHOR_PERMITS));
 
         switch (event.getEventsExtractionJobType()) {
-            case EVENTS_EXTRACTED_INITIAL:
+            case EVENT_RESULTS_EXTRACTED_INITIAL:
                 handleEventRivalriesComputation(event, semaphore);
                 break;
 
-            case EVENTS_EXTRACTION_INITIAL_FINISHED:
+            case EVENT_RESULTS_EXTRACTION_INITIAL_FINISHED:
                 handleGlobalRivalriesInitialComputation(event, semaphore);
+                StartupDataExtraction.finishedStartupExtrationAndComputation();
                 break;
 
-            case EVENTS_EXTRACTED_DAILY:
+            case EVENT_RESULTS_EXTRACTED_DAILY:
                 handleEventRivalriesComputation(event, semaphore);
                 break;
 
-            case EVENTS_EXTRACTED_DAILY_FINISHED:
+            case EVENT_RESULTS_EXTRACTED_DAILY_FINISHED:
                 handleGlobalRivalriesDailyComputation(event, semaphore);
                 break;
         }

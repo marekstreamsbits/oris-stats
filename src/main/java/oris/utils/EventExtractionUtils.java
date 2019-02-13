@@ -11,7 +11,7 @@ public class EventExtractionUtils {
     private EventExtractionUtils() {
     }
 
-    public static Set<Long> addAttendees(final Collection<Event> events) {
+    public static Set<Long> extractAttendeeIds(final Collection<Event> events) {
         final Set<Long> attendeeIds = new HashSet<>();
         events.forEach(
                 event -> event.getResults().forEach(

@@ -31,7 +31,7 @@ public class OrisExtractorTest extends BaseSpringTest {
 
     @Test
     public void extractAndPersist() {
-        Collection<Event> persistedEvents = orisExtractionService.extractAndPersistEventData(LocalDate.now(), LocalDate.now());
+        Collection<Event> persistedEvents = orisExtractionService.extractAndPersistEventDataWithResults(LocalDate.now(), LocalDate.now());
 
         persistedEvents.forEach(event -> {
             if (event.getEventId() == 1L) {
