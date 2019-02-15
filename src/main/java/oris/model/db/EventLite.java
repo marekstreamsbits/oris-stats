@@ -12,6 +12,9 @@ import javax.persistence.Table;
 @Entity
 public class EventLite extends BaseEntity {
 
+    /**
+     * ORIS ID
+     */
     @Column(nullable = false)
     private Long eventId;
 

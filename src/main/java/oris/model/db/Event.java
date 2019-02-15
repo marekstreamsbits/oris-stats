@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class Event extends EventLite {
     private Collection<EventStatistics> eventStatistics;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "event", fetch = FetchType.LAZY)
-    private List<Result> results;
+    private List<Result> results = Collections.emptyList();
 
     public enum EventType {
         OB(1),

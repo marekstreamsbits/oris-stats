@@ -49,7 +49,9 @@ public interface GlobalRivalryRepository extends CrudRepository<GlobalRivalry, L
 
     String FIND_ALL_BY_ATTENDEE_REGISTRATION_NUMBER = "SELECT new oris.model.api.GlobalRivalryDto(gr.attendee.registrationNumber," +
             " gr.rival.registrationNumber, gr.category, gr.eventCount, gr.winDifference)" +
-            " FROM GlobalRivalry gr WHERE gr.attendee.registrationNumber =:registrationNumber ORDER BY gr.eventCount DESC, gr.winDifferenceAbs ASC";
+            " FROM GlobalRivalry gr WHERE gr.attendee.registrationNumber =:registrationNumber AND" +
+            " LENGTH(gr.rival.registrationNumber) > 4 AND gr.rival.registrationNumber not like 'NN%'" +
+            " ORDER BY gr.eventCount DESC, gr.winDifferenceAbs ASC";
 
     String FIND_ALL_BY_ATTENDEE_REGISTRATION_NUMBER_AND_RIVAL_REGISTRATION_NUMBER = "SELECT new oris.model.api.GlobalRivalryDto(gr.attendee.registrationNumber," +
             " gr.rival.registrationNumber, gr.category, gr.eventCount, gr.winDifference)" +

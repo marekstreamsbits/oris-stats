@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class GlobalRivalryDto {
+public class GlobalRivalryDto implements HasAttendeeRegNo {
 
     private String attendeeRegNo;
 
