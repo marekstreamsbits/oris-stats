@@ -16,7 +16,6 @@ import test.spring.BaseSpringTest;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -158,13 +157,13 @@ public class OrisExtractorTest extends BaseSpringTest {
 
     private void mockGetEventDetailCall(OrisApiExtractionService service) {
         final Event event = new Event();
-        event.setDate(new Date());
+        event.setDate(LocalDate.now());
         event.setName("Event1");
         event.setEventId(1L);
         Mockito.when(service.getEventDetail(1L)).thenReturn(event);
 
         final Event event1 = new Event();
-        event1.setDate(new Date());
+        event1.setDate(LocalDate.now());
         event1.setName("Event2");
         event1.setEventId(2L);
         Mockito.when(service.getEventDetail(2L)).thenReturn(event1);

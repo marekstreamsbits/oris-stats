@@ -2,8 +2,8 @@ package oris.model.api;
 
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.Date;
 
 @Data
 public class EventResult {
@@ -40,9 +40,9 @@ public class EventResult {
 
     private String category;
 
-    private Date date;
+    private LocalDate date;
 
-    public EventResult(Long eventId, String eventName, Integer place, Integer attendeesInCategory, Integer attendeesInCategoryWithDisq, Integer time, Integer loss, String category, Date date) {
+    public EventResult(Long eventId, String eventName, Integer place, Integer attendeesInCategory, Integer attendeesInCategoryWithDisq, Integer time, Integer loss, String category, LocalDate date) {
         this.eventId = eventId;
         this.eventName = eventName;
         this.place = place;

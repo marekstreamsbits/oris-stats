@@ -16,7 +16,7 @@ public class EventListVersionsResponse implements DataExtractor<Collection<Event
     @Override
     public Collection<EventLite> getData() {
         if (data.isEmpty()) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         return data.values();
     }
