@@ -76,12 +76,11 @@ public class OrisExtractionService {
         final List<Event> eventsWithNewlyAddedResults = new ArrayList<>();
         todaysEventsWithoutResults.forEach(event ->
                 completionService.submit(() -> {
-                    final Event eventDetail = orisApiExtractionService.getEventDetail(event.getEventId());
                     final Collection<ResultDTO> eventResults = orisApiExtractionService.getEventResults(event.getEventId());
                     if (eventResults.isEmpty()) {
-                        return eventDetail;
+                        return event;
                     }
-                    final Event eventWithSavedResults = saveEventInfo(eventDetail, eventResults);
+                    final Event eventWithSavedResults = saveEventInfo(event, eventResults);
                     ;
                     eventsWithNewlyAddedResults.add(eventWithSavedResults);
                     return eventWithSavedResults;
