@@ -21,7 +21,7 @@ public interface EventRepository extends CrudRepository<Event, Long> {
             "((SELECT r.event.id FROM Result r WHERE r.attendee.registrationNumber = :registrationNumber)) ORDER BY e.date DESC";
 
     @Query(TODAYS_EVENTS_WITHOUT_RESULTS_QUERY)
-    Collection<Event> findAllTodaysEventsWithoutResults(@Param("todaysDate") final LocalDate now);
+    Collection<Event> findAllEventsWithoutResultsForDate(@Param("todaysDate") final LocalDate date);
 
     @Query(PAST_EVENTS_WITHOUT_RESULTS_QUERY)
     Collection<Event> findAllEventsWithoutResultsBetweenDates(@Param("fromDate") final LocalDate fromDate, @Param("toDate") final LocalDate toDate);

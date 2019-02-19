@@ -65,8 +65,6 @@ public class StartupDataExtraction {
 
         log.info("Starting loading data from ORIS. From date " + startDate);
 
-        //TODO check for already populated database - check latest added event - start from there in case
-
         final Set<Long> attendeeIds = new HashSet<>();
         final UUID jobId = UUID.randomUUID();
         final LocalDate today = LocalDate.now();

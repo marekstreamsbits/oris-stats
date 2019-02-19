@@ -29,7 +29,7 @@ public class EventService {
     }
 
     public Collection<Event> getTodaysEventsWithoutResults() {
-        return eventRepository.findAllTodaysEventsWithoutResults(LocalDate.now());
+        return eventRepository.findAllEventsWithoutResultsForDate(LocalDate.now());
     }
 
     public Collection<Event> getPastMonthEventsWithoutResults() {

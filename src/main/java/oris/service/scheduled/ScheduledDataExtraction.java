@@ -54,9 +54,12 @@ public class ScheduledDataExtraction {
         final Collection<Event> todaysEventsWithoutResults = eventService.getTodaysEventsWithoutResults();
         final Collection<Event> todaysEventsWithFreshlyAddedResults = orisExtractionService.extractAndPersistEventResultsData(todaysEventsWithoutResults);
 
-        log.info("Finished job extract today's event results data. Now sending {} events rivalries computation.", todaysEventsWithFreshlyAddedResults.size());
+        log.info("Finished job extract today's event results data for {} of {} events. Now sending {} events rivalries computation.",
+                todaysEventsWithoutResults.size(), todaysEventsWithFreshlyAddedResults.size(), todaysEventsWithFreshlyAddedResults.size());
 
-        sendNewlyAddedResultsForRivalryComputation(todaysEventsWithFreshlyAddedResults);
+        if (!todaysEventsWithFreshlyAddedResults.isEmpty()) {
+            sendNewlyAddedResultsForRivalryComputation(todaysEventsWithFreshlyAddedResults);
+        }
     }
 
     /**
@@ -72,12 +75,12 @@ public class ScheduledDataExtraction {
         final Collection<Event> pastMonthEventsWithoutResults = eventService.getPastMonthEventsWithoutResults();
         final Collection<Event> eventsWithFreshlyAddedResults = orisExtractionService.extractAndPersistEventResultsData(pastMonthEventsWithoutResults);
 
-        log.info("Finished job extract p[ast month's event results data. Now sending {} events rivalries computation.", eventsWithFreshlyAddedResults.size());
+        log.info("Finished job extract past month's event results data. Now sending {} events rivalries computation.", eventsWithFreshlyAddedResults.size());
 
         sendNewlyAddedResultsForRivalryComputation(eventsWithFreshlyAddedResults);
     }
 
-    protected void sendNewlyAddedResultsForRivalryComputation(final Collection<Event> eventsWithFreshlyAddedResults) {
+    private void sendNewlyAddedResultsForRivalryComputation(final Collection<Event> eventsWithFreshlyAddedResults) {
         if (!eventsWithFreshlyAddedResults.isEmpty()) {
             final LocalDate today = LocalDate.now();
             final UUID jobId = UUID.randomUUID();

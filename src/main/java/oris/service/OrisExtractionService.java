@@ -73,6 +73,7 @@ public class OrisExtractionService {
 
     public Collection<Event> extractAndPersistEventResultsData(final Collection<Event> todaysEventsWithoutResults) {
         final ExecutorCompletionService completionService = new ExecutorCompletionService(executorService);
+        final List<Event> eventsWithNewlyAddedResults = new ArrayList<>();
         todaysEventsWithoutResults.forEach(event ->
                 completionService.submit(() -> {
                     final Event eventDetail = orisApiExtractionService.getEventDetail(event.getEventId());
@@ -80,10 +81,14 @@ public class OrisExtractionService {
                     if (eventResults.isEmpty()) {
                         return eventDetail;
                     }
-                    return saveEventInfo(eventDetail, eventResults);
+                    final Event eventWithSavedResults = saveEventInfo(eventDetail, eventResults);
+                    ;
+                    eventsWithNewlyAddedResults.add(eventWithSavedResults);
+                    return eventWithSavedResults;
                 })
         );
-        return finishEventTasks(new ArrayList<>(todaysEventsWithoutResults), completionService);
+        finishEventTasks((new ArrayList<>(todaysEventsWithoutResults)), completionService);
+        return eventsWithNewlyAddedResults;
     }
 
     protected Collection<Event> finishEventTasks(Collection<EventLite> events, ExecutorCompletionService completionService) {
