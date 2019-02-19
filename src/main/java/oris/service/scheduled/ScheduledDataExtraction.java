@@ -54,7 +54,7 @@ public class ScheduledDataExtraction {
         final Collection<Event> todaysEventsWithoutResults = eventService.getTodaysEventsWithoutResults();
         final Collection<Event> todaysEventsWithFreshlyAddedResults = orisExtractionService.extractAndPersistEventResultsData(todaysEventsWithoutResults);
 
-        log.info("Finished job extract today's event results data for {} of {} events. Now sending {} events rivalries computation.",
+        log.info("Finished job extract today's event results data for {} of {} events.Sending {} events for rivalries computation.",
                 todaysEventsWithoutResults.size(), todaysEventsWithFreshlyAddedResults.size(), todaysEventsWithFreshlyAddedResults.size());
 
         if (!todaysEventsWithFreshlyAddedResults.isEmpty()) {
